@@ -7,17 +7,29 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
+# Assets grandes (texturas TIF/PNG acima do limite do GitHub)
+/Assets/ALP_Assets/
+/Assets/ALP_Assets.meta
+
 # Meta XR SDK cache
 /Assets/Oculus/
+/Assets/Oculus.meta
 /Assets/MetaXR/
+/Assets/_Recovery/
+/Assets/_Recovery.meta
 
 # Arquivos de IDE
 .vs/
 .idea/
+.vscode/
 *.suo
 *.user
 *.csproj
 *.sln
+
+# Documentos binários e PDFs externos
+*.docx
+upload-*.pdf
 
 # Arquivos do SO
 .DS_Store

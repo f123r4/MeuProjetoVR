@@ -1,0 +1,290 @@
+RELATÓRIO TÉCNICO — PROJETO VR NO METAVERSO
+Web 3.0 | Residência em TIC 29 — Atividade Avaliativa
+
+---
+
+SEÇÃO 1 — IDENTIFICAÇÃO
+
+Nome Completo: Filipe Mazon
+Turma / Residência: TIC 29 — Web 3.0
+
+LIMITAÇÃO TÉCNICA DE AMBIENTE DE DESENVOLVIMENTO
+
+Sistema Operacional: Bazzite (baseado em Fedora Linux — distribuição imutável
+orientada a jogos, derivada do rpm-ostree/SteamOS)
+
+O projeto foi desenvolvido integralmente em Linux, sistema operacional não
+suportado oficialmente pela Meta para desenvolvimento com o Meta XR SDK.
+Isso gerou uma série de limitações técnicas documentadas abaixo:
+
+1. ERRO DE INICIALIZAÇÃO DO META XR SDK (OVRProjectConfig)
+   Ao abrir o projeto no Unity Editor, o SDK lançava a exceção:
+     System.TypeInitializationException → ArgumentOutOfRangeException
+     em OVRProjectConfig..cctor() → Enumerable.Range(200, count_negativo)
+   Causa raiz: no Linux, a biblioteca nativa OVRPlugin não carrega (sem
+   suporte ao driver Oculus/Meta no sistema), fazendo OVRPlugin.wrapperVersion
+   retornar Version(0,0,0). Isso tornava currentSdkVersion = 60 (mínimo),
+   resultando em Enumerable.Range(200, -139) — contagem negativa inválida.
+   Solução aplicada: patch manual no arquivo PackageCache do SDK, adicionando
+   uma guarda condicional para evitar o Range com count negativo:
+     .Concat(currentSdkVersion >= version2Start
+         ? Enumerable.Range(version2Start, currentSdkVersion - version2Start + 1)
+         : Enumerable.Empty<int>())
+   Limitação do patch: o arquivo fica em Library/PackageCache (não versionado),
+   sendo necessário reaplicar caso a pasta Library seja deletada.
+
+2. CONFLITO DO OVR HEADSET EMULATOR COM CHARACTERCONTROLLER
+   O componente OVR Headset Emulator (modo "Editor Only") manipula a posição
+   do XROrigin em paralelo com CharacterController.Move(), impedindo que
+   isGrounded retorne true de forma consistente. Isso causava comportamento
+   imprevisível na física de colisão — o player era bloqueado em aberturas
+   que deveriam ser navegáveis.
+   Solução aplicada: manutenção do CharacterController com tratamento de
+   gravidade (compatível com a solução do projeto de referência), ajuste das
+   dimensões físicas da casa (abertura maior) e configuração correta do
+   CharacterController (Height: 1.8, Radius: 0.3, Center Y: 0.9).
+
+3. AUSÊNCIA DO RUNTIME OCULUS/META NO LINUX
+   O Linux não possui o runtime nativo do Oculus/Meta Quest (oculus-runtime),
+   impossibilitando o uso do XR Device Simulator completo e a conexão USB
+   com o headset Quest para testes diretos. Todo o desenvolvimento e teste
+   foi realizado no Unity Editor com movimentação via teclado (WASD),
+   sem emulação de controles VR.
+
+4. SISTEMA IMUTÁVEL BAZZITE (rpm-ostree)
+   O Bazzite, por ser uma distribuição imutável, não permite instalação de
+   pacotes de sistema pela forma convencional (dnf install). Ferramentas de
+   desenvolvimento como Android SDK, NDK e Java (necessárias para build
+   Android/Meta Quest) precisam ser instaladas em camadas overlay ou via
+   Flatpak/Toolbox, o que exigiu configuração adicional do ambiente.
+
+IMPACTO NAS ENTREGAS:
+   Devido às limitações acima, o projeto foi desenvolvido e testado
+   exclusivamente no Unity Editor em modo PC (teclado). O build para
+   Android/Meta Quest foi configurado nas Build Settings conforme os
+   requisitos do projeto, mas não pôde ser testado diretamente no headset
+   durante o desenvolvimento por restrições do ambiente Linux.
+
+---
+
+SEÇÃO 2 — CONCEITO DO PROJETO
+
+2.1 Nome do Projeto: Meu Primeiro Ambiente VR
+
+2.2 Contexto e Objetivo no Metaverso:
+Criar um ambiente VR interativo de exploração onde o jogador navega por um
+cenário externo com uma casa, coleta 3 objetos espalhados pelo ambiente e,
+após coletar todos, acessa o interior da casa para ativar um botão interativo.
+O objetivo é demonstrar os fundamentos de XR — navegação, interação por
+proximidade, feedback visual via HUD e resposta a eventos do jogador —
+em um projeto funcional no Unity com Meta XR SDK.
+
+2.3 Descrição Geral do Ambiente Virtual:
+Área externa gramada com um plano de chão texturizado e skybox de pôr do sol.
+No centro do ambiente há uma casa construída inteiramente por script (CasaBuilder),
+composta por paredes, teto, chão interno e maçaneta. Três objetos coletáveis
+(Chave, Cristal e Moeda) estão posicionados ao redor da casa. O HUD flutua à
+frente do jogador exibindo pontuação, contador de objetos e mensagens de evento.
+Após coletar os 3 itens, a parede superior da entrada desaparece, o botão aparece
+dentro da casa e o jogador pode entrar e ativá-lo — mudando sua cor de branco
+para amarelo (hover) e verde (ativado).
+
+---
+
+SEÇÃO 3 — CONFIGURAÇÃO TÉCNICA DO PROJETO
+
+3.1 Versão do Unity e Porquê:
+Unity 6000.3.14f1 (Unity 6 LTS), por ser a versão estável com suporte ao
+Meta XR SDK v60+ e ao Universal Render Pipeline (URP), garantindo compatibilidade
+com build Android para Meta Quest.
+
+3.2 Instalação do Meta XR SDK (Passo a Passo):
+1. Abrir Window > Package Manager
+2. Clicar em "+" > "Add package by name"
+3. Inserir: com.meta.xr.sdk.all
+4. Aguardar importação automática
+O manifest.json já inclui a dependência — ao abrir o projeto ela é importada
+automaticamente.
+
+3.3 Configurações de Build para Android/Meta Quest:
+- File > Build Settings > Android > Switch Platform
+- Player Settings > Other Settings:
+  * Minimum API Level: Android 10 (API Level 29)
+  * Target API Level: Android 12 (API Level 31)
+  * Texture Compression: ASTC
+  * Scripting Backend: IL2CPP
+  * Target Architectures: ARM64
+
+3.4 Configuração do XR Plugin Management:
+- Edit > Project Settings > XR Plugin Management
+- Aba PC: marcar "Oculus" (para teste no Editor)
+- Aba Android: marcar "Oculus" (para build no Quest)
+
+3.5 Movimentação no PC (Editor):
+Movimentação via teclado (WASD / setas) usando CharacterController com gravidade,
+implementado no PlayerController.cs. O CharacterController é configurado com
+Height: 1.8, Radius: 0.3 e Center Y: 0.9, garantindo ancoragem correta ao chão.
+Controles: W/S = frente/trás | A/D = esquerda/direita | E ou clique = interagir.
+
+---
+
+SEÇÃO 4 — ASSETS E ELEMENTOS DA CENA
+
+ASSET 1
+* Nome: Grama / Terreno
+* Tipo: Textura / Material
+* Origem: Asset Store (Gratuito) — Terrain Textures
+* Função: Criar o fundo imersivo do ambiente externo com aparência de gramado.
+
+ASSET 2
+* Nome: Skybox Pôr do Sol
+* Tipo: Material Skybox
+* Origem: Asset Store (Gratuito)
+* Função: Criar o céu e o ambiente ao redor da cena, dando profundidade visual.
+
+ASSET 3
+* Nome: TextMesh Pro
+* Tipo: Pacote de UI
+* Origem: Integrado ao Unity (pacote oficial)
+* Função: Renderizar os textos do HUD (pontuação, contador de objetos, mensagens).
+
+ASSET 4
+* Nome: Casa (CasaBuilder)
+* Tipo: Objeto 3D — Primitivos Unity com modificações
+* Origem: Gerado por script próprio (Editor/CasaBuilder.cs)
+* Função: Estrutura principal do ambiente — paredes, teto, porta e maçaneta
+  criados proceduralmente via ferramenta customizada no Unity Editor.
+
+ASSET 5
+* Nome: Objetos Coletáveis (Chave, Cristal, Moeda)
+* Tipo: Objetos 3D — Primitivos Unity
+* Origem: Primitivos Unity (Cube/Sphere) com materiais coloridos
+* Função: Itens interativos que o jogador coleta por proximidade para ganhar pontos.
+
+---
+
+SEÇÃO 5 — HIERARQUIA DE GAME OBJECTS
+
+Scene: scene1.unity
+
+[--- MANAGEMENT ---]
+  GameManager          → componente: GameManager.cs
+                         (controle de pontuação, coleta e eventos da cena)
+  EventSystem          → componentes: EventSystem + StandaloneInputModule
+  HUD_Canvas           → Canvas (World Space) + HUDView.cs
+                         (segue a câmera via LateUpdate)
+    Texto_Pontuacao    → TextMeshProUGUI
+    Texto_Objetos      → TextMeshProUGUI
+    Texto_Mensagem     → TextMeshProUGUI
+
+[--- PLAYER ---]
+  XROrigin             → CharacterController + PlayerController.cs
+                         tag: "Player"
+
+[--- ENVIRONMENT ---]
+  Plane_Chao           → Unity Plane (terreno navegável)
+  Directional Light    → iluminação principal da cena
+  Casa                 → objeto pai da estrutura da casa
+    Paredes            → agrupador das paredes
+      Parede_Fundo
+      Parede_Esquerda
+      Parede_Direita
+      Parede_Frente_Esq
+      Parede_Frente_Dir
+      Parede_Frente_Topo   → some ao coletar os 3 objetos
+      Teto
+    Chao_Interno
+
+[--- INTERACTABLES ---]
+  Objeto_Coletavel_01  → Chave   — 10 pts
+                         componentes: ObjetoColetavelController + ObjetoColetavelView
+  Objeto_Coletavel_02  → Cristal — 20 pts
+                         componentes: ObjetoColetavelController + ObjetoColetavelView
+  Objeto_Coletavel_03  → Moeda   — 30 pts
+                         componentes: ObjetoColetavelController + ObjetoColetavelView
+  Botao_Principal      → ativo apenas após coletar os 3 itens
+                         componentes: BotaoPrincipalController + BotaoPrincipalView
+
+---
+
+SEÇÃO 6 — PLANEJAMENTO DO REPOSITÓRIO GITHUB
+
+6.1 Nome do Repositório: MeuAmvienteVR
+6.2 Link: https://github.com/f123r4/MeuAmvienteVR
+
+6.3 Estrutura de Pastas versionadas:
+  /Assets          → Scripts, Materials, Scenes, Editor, Prefabs
+  /ProjectSettings → Configurações de Build, XR e qualidade
+  /Packages        → manifest.json com dependências (Meta XR SDK, TextMesh Pro)
+  .gitignore       → ignora /Library, /Temp, /Obj, /Build, /Logs, /UserSettings
+
+6.4 O que NÃO é versionado (via .gitignore):
+  /Library         → cache gerado automaticamente pelo Unity
+  /Temp            → arquivos temporários de compilação
+  *.apk / *.aab    → builds gerados
+
+---
+
+SEÇÃO 7 — PLANO DE EXECUÇÃO PASSO A PASSO
+
+Etapa 1: Instalação e configuração inicial
+  - Instalação do Unity 6000.3.14f1 via Unity Hub
+  - Criação do projeto 3D (URP)
+  - Instalação do Meta XR SDK via Package Manager
+  - Configuração do XR Plugin Management (Oculus PC + Android)
+  - Configuração do Build Settings para Android (API 29, ASTC, IL2CPP, ARM64)
+
+Etapa 2: Criação da cena base
+  - Adição do Plane_Chao e aplicação de textura de grama
+  - Configuração do Skybox de pôr do sol
+  - Adição de Directional Light
+
+Etapa 3: Construção da casa
+  - Desenvolvimento do script CasaBuilder.cs (Editor customizado)
+  - Geração procedural das paredes, teto, porta e maçaneta via menu Tools/Build Casa
+  - Aplicação de materiais coloridos nos elementos
+
+Etapa 4: Implementação do player
+  - Configuração do XROrigin com CharacterController (H: 1.8, R: 0.3, CY: 0.9)
+  - Desenvolvimento do PlayerController.cs com movimentação WASD + gravidade
+  - Detecção de coleta por OverlapSphere e interação com botão por proximidade
+
+Etapa 5: Sistema de pontuação e HUD
+  - Desenvolvimento do GameManager.cs (MVC Controller central)
+  - HUD_Canvas em World Space com HUDView.cs seguindo a câmera
+  - TextMeshPro para exibição de pontuação, contador e mensagens
+
+Etapa 6: Objetos coletáveis e botão interativo
+  - Criação dos 3 objetos coletáveis com ObjetoColetavelController/View
+  - Feedback visual: objeto desaparece ao ser coletado
+  - Desenvolvimento do BotaoPrincipalController/View com estados de cor
+    (branco → amarelo hover → verde ativado)
+
+Etapa 7: Mecânica de progressão
+  - Botão_Principal inativo no início (ativado pelo GameManager ao coletar os 3 itens)
+  - Parede_Frente_Topo desaparece ao completar a coleta, abrindo a entrada
+  - Mensagem no HUD guia o jogador em cada etapa
+
+Etapa 8: Testes e ajustes
+  - Testes no Unity Editor (Play Mode com teclado)
+  - Ajuste de dimensões da casa para permitir entrada do player
+  - Correção do erro de inicialização do Meta XR SDK no Linux (OVRProjectConfig)
+  - Validação do fluxo completo: coletar → botão aparece → entrar → ativar
+
+---
+
+PONTOS APRENDIDOS / REFLEXÃO
+
+- A separação em MVC (Model-View-Controller) facilitou manutenção e debug —
+  cada script tem uma responsabilidade clara.
+- O CharacterController em conjunto com o Meta XR SDK no Linux apresentou
+  conflitos de sistema, ensinando a importância de testar em múltiplos ambientes.
+- Scripts de Editor customizados (CasaBuilder) são ferramentas poderosas para
+  construção procedural de cenas, evitando trabalho manual repetitivo.
+- O desenvolvimento iterativo (testar → identificar problema → corrigir) foi
+  fundamental para superar os desafios de compatibilidade do SDK.
+
+---
+
+Web 3.0 | Residência em TIC 29 — 2025/2026
+Aluno: Filipe Mazon | Prof.: Ana Beatriz

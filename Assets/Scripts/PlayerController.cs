@@ -1,28 +1,49 @@
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] public Camera referenciaCamera;
-    [SerializeField] float velocidade = 3f;
-    [SerializeField] float raioColeta = 1.5f;
-    [SerializeField] float raioBotao  = 1.2f;
+    [SerializeField] float velocidade       = 3f;
+    [SerializeField] float raioColeta       = 1.5f;
+    [SerializeField] float raioBotao = 1.5f;
 
+    private CharacterController _cc;
+    private float _velocidadeY;
     private BotaoPrincipalController botaoAtual = null;
+
+    void Awake() => _cc = GetComponent<CharacterController>();
 
     void Update()
     {
+        Mover();
+        VerificarColeta();
+        VerificarBotao();
+    }
+
+    void Mover()
+    {
+        if (_cc.isGrounded) _velocidadeY = -0.5f;
+        else _velocidadeY += Physics.gravity.y * Time.deltaTime;
+
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        transform.Translate(new Vector3(h, 0, v) * velocidade * Time.deltaTime, Space.Self);
 
-        // Coleta por proximidade
+        Vector3 dir = transform.TransformDirection(new Vector3(h, 0, v)) * velocidade;
+        _cc.Move((dir + Vector3.up * _velocidadeY) * Time.deltaTime);
+    }
+
+    void VerificarColeta()
+    {
         foreach (var col in Physics.OverlapSphere(transform.position, raioColeta))
         {
             var ctrl = col.GetComponent<ObjetoColetavelController>();
             if (ctrl != null) ctrl.TentarColetar();
         }
+    }
 
-        // Hover do botao por proximidade
+    void VerificarBotao()
+    {
         BotaoPrincipalController botaoEncontrado = null;
         foreach (var col in Physics.OverlapSphere(transform.position, raioBotao))
         {

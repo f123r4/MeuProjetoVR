@@ -4,6 +4,8 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] public HUDView hudView;
+    [SerializeField] public GameObject botaoPrincipal;
+    [SerializeField] public GameObject paredeEntrada;
 
     private int pontuacao = 0;
     private int totalObjetos = 3;
@@ -11,7 +13,8 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Inicializa o HUD com valores zerados
+        if (botaoPrincipal != null) botaoPrincipal.SetActive(false);
+
         if (hudView != null)
         {
             hudView.AtualizarPontuacao(pontuacao);
@@ -19,6 +22,8 @@ public class GameManager : MonoBehaviour
             hudView.ExibirMensagem("Colete todos os objetos!");
         }
     }
+
+    public bool TodosObjetosColetados() => objetosColetados >= totalObjetos;
 
     // Chamado por ObjetoColetavelController quando um objeto é coletado
     public void RegistrarColeta(int pontos)
@@ -32,7 +37,11 @@ public class GameManager : MonoBehaviour
             hudView.AtualizarObjetos(objetosColetados, totalObjetos);
 
             if (objetosColetados >= totalObjetos)
-                hudView.ExibirMensagem("Parabéns! Todos os objetos coletados!");
+            {
+                hudView.ExibirMensagem("Parabéns! Entre na casa e pressione o botão!");
+                if (botaoPrincipal != null) botaoPrincipal.SetActive(true);
+                if (paredeEntrada != null) paredeEntrada.SetActive(false);
+            }
             else
                 hudView.ExibirMensagem("Objeto coletado! +" + pontos + " pontos");
         }
