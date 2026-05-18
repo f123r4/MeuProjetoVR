@@ -189,4 +189,4 @@ Para usar o **XR Meta Simulator** (emula controles):
 
 ---
 
-*Web 3.0 | Residência em TIC 29 — 2025*
+*Web 3.0 | Residência em TIC 29 — 2026*
