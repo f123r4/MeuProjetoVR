@@ -1,0 +1,165 @@
+SCRIPT DE VÍDEO — Meu Primeiro Ambiente VR
+Filipe Mazon | TIC 29 — Web 3.0 | Prof. Ana Beatriz
+Duração estimada: ~4 minutos
+
+Link do vídeo explicativo: https://youtu.be/q8MvbNzwwAk
+
+========================================================
+
+[MOSTRAR NA TELA: Unity Editor com a cena aberta]
+
+---
+[0:00 — ABERTURA]
+---
+
+"Olá, eu sou Filipe Mazon, aluno da turma TIC 29 da Residência em Web 3.0.
+Vou apresentar o meu projeto da Unidade 1 — Capítulo 3:
+um ambiente de Realidade Virtual desenvolvido com Unity 6 e o Meta XR SDK."
+
+---
+[0:15 — O QUE É O PROJETO]
+---
+
+[MOSTRAR: Scene view com a casa, chão, skybox e objetos coletáveis visíveis]
+
+"O projeto se chama 'Meu Primeiro Ambiente VR'.
+O objetivo é simples: o jogador aparece em uma área externa com uma casa,
+precisa coletar três objetos espalhados pelo ambiente —
+uma Chave, um Cristal e uma Moeda —
+e depois entrar na casa para ativar um botão interativo.
+
+O ambiente tem um skybox de pôr do sol, um chão texturizado,
+e um HUD flutuante que exibe a pontuação e as mensagens de progresso."
+
+---
+[0:45 — CONFIGURAÇÃO TÉCNICA]
+---
+
+[MOSTRAR: Edit > Project Settings > XR Plugin Management]
+
+"Do ponto de vista técnico, o projeto usa:
+— Unity 6, versão 6000.3.14f1
+— Universal Render Pipeline, o URP
+— Meta XR SDK versão 60, instalado via Package Manager
+— XR Plugin Management configurado com Oculus marcado tanto
+  para PC quanto para Android.
+
+[MOSTRAR: File > Build Settings mostrando Android selecionado]
+
+As Build Settings estão configuradas para Meta Quest:
+Android API 29 mínimo, API 31 como target,
+compressão de textura ASTC, backend IL2CPP e arquitetura ARM64."
+
+---
+[1:15 — DESAFIO TÉCNICO: LINUX]
+---
+
+"Uma particularidade do meu desenvolvimento:
+eu programei tudo no Linux — Bazzite, baseado em Fedora —
+que não é suportado oficialmente pela Meta.
+
+Isso causou um erro de inicialização do SDK:
+o OVRPlugin retornava versão zero no Linux,
+gerando um cálculo inválido dentro do OVRProjectConfig.
+
+[MOSTRAR: Relatório técnico ou o trecho do patch aplicado]
+
+A solução foi um patch manual no PackageCache do SDK,
+adicionando uma guarda condicional para evitar o erro.
+Todo o teste foi feito no Editor com movimentação por teclado,
+já que o runtime do Oculus não existe no Linux."
+
+---
+[1:50 — ARQUITETURA MVC]
+---
+
+[MOSTRAR: Pasta Scripts no Project panel com as subpastas Models/Views/Controllers]
+
+"O código segue o padrão MVC — Model, View, Controller.
+
+Os Models guardam apenas dados, sem herdar de MonoBehaviour:
+AmbienteModel, JogadorModel e ObjetoColetavelModel.
+
+As Views cuidam só do visual e do áudio:
+HUDView atualiza o texto na tela, ObjetoColetavelView anima os objetos.
+
+Os Controllers tratam a lógica:
+o GameManager é o singleton central que coordena tudo,
+e o PlayerController gerencia a movimentação com CharacterController e gravidade."
+
+---
+[2:20 — DEMONSTRAÇÃO DA CENA]
+---
+
+[MOSTRAR: Play Mode no Editor, movendo com WASD]
+
+"No modo Play, o jogador se move com WASD.
+Ao se aproximar de um objeto coletável, ele é coletado automaticamente —
+a detecção é por OverlapSphere — e o HUD atualiza a pontuação.
+
+[MOSTRAR: Coletar os 3 objetos e a parede desaparecendo]
+
+Ao coletar os três itens, duas coisas acontecem:
+a parede superior da entrada da casa desaparece,
+e o botão interativo aparece dentro da casa.
+
+[MOSTRAR: Entrar na casa e ativar o botão]
+
+Ao entrar e chegar perto do botão, ele muda de branco para amarelo
+indicando hover, e ao ativar, fica verde.
+O HUD exibe a mensagem de conclusão."
+
+---
+[3:00 — CONSTRUÇÃO PROCEDURAL DA CASA]
+---
+
+[MOSTRAR: Tools > Build Casa no menu do Editor, ou a hierarquia da cena]
+
+"A casa não foi montada manualmente — ela é gerada por script.
+Criei um Editor customizado chamado CasaBuilder,
+que constrói todas as paredes, teto, porta e maçaneta
+automaticamente via menu Tools do Unity.
+
+Isso evita trabalho manual repetitivo e garante que
+a estrutura pode ser regenerada a qualquer momento."
+
+---
+[3:20 — REPOSITÓRIO E DOCUMENTAÇÃO]
+---
+
+[MOSTRAR: GitHub com o repositório aberto]
+
+"O projeto está versionado no GitHub:
+github.com/f123r4/MeuProjetoVR
+
+O .gitignore exclui a pasta Library e arquivos temporários,
+versionando apenas Assets, Scripts, Materials e ProjectSettings.
+
+O README documenta toda a configuração passo a passo,
+e o relatório técnico detalha os desafios do desenvolvimento no Linux."
+
+---
+[3:40 — ENCERRAMENTO]
+---
+
+"Como aprendizado principal, destaco a separação em MVC —
+ela tornou o código muito mais fácil de manter e corrigir.
+
+E o desafio de desenvolver no Linux me ensinou a importância
+de entender o que acontece por baixo do SDK,
+não só usar ele pronto.
+
+Obrigado."
+
+---
+[FIM — 3:50]
+---
+
+========================================================
+DICAS DE GRAVAÇÃO:
+- Grave em 1080p com o Unity em modo janela maximizado
+- Desative notificações do sistema antes de gravar
+- Fale devagar nos trechos técnicos (nomes de SDK, configurações)
+- Se errar, pause, respire e continue — edite depois
+- Os trechos [MOSTRAR] indicam o que exibir na tela em cada momento
+========================================================

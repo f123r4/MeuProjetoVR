@@ -273,16 +273,38 @@ Etapa 8: Testes e ajustes
 
 ---
 
-PONTOS APRENDIDOS / REFLEXÃO
+SEÇÃO 8 — REFLEXÃO FINAL
 
-- A separação em MVC (Model-View-Controller) facilitou manutenção e debug —
-  cada script tem uma responsabilidade clara.
-- O CharacterController em conjunto com o Meta XR SDK no Linux apresentou
-  conflitos de sistema, ensinando a importância de testar em múltiplos ambientes.
-- Scripts de Editor customizados (CasaBuilder) são ferramentas poderosas para
-  construção procedural de cenas, evitando trabalho manual repetitivo.
-- O desenvolvimento iterativo (testar → identificar problema → corrigir) foi
-  fundamental para superar os desafios de compatibilidade do SDK.
+8.1 Aprendizado:
+A separação em MVC (Model-View-Controller) foi o aprendizado mais valioso —
+cada camada com responsabilidade única facilitou manutenção, debug e evolução
+do projeto. Aprendi também que o Meta XR SDK tem comportamentos internos não
+documentados (como o bug do OVRProjectConfig no Linux), e que entender o SDK
+em profundidade — não só usá-lo — faz diferença real no desenvolvimento.
+Scripts de Editor customizados (CasaBuilder) mostraram como ferramentas
+procedurais economizam tempo e garantem consistência na construção de cenas.
+
+8.2 Dificuldades Encontradas:
+A principal dificuldade foi o ambiente de desenvolvimento Linux (Bazzite),
+que não é suportado oficialmente pela Meta. O SDK lançava uma exceção crítica
+na inicialização (OVRProjectConfig — Enumerable.Range com contagem negativa),
+exigindo análise do código-fonte do SDK e aplicação de um patch manual.
+Além disso, o conflito entre o OVR Headset Emulator e o CharacterController
+causou instabilidade na física de colisão, resolvida com ajuste das dimensões
+da casa e configuração correta do CharacterController (Height: 1.8, Radius: 0.3).
+A ausência do runtime Oculus/Meta no Linux impossibilitou testes no headset.
+
+8.3 Melhorias Futuras:
+- Substituir primitivos Unity por assets 3D com texturas detalhadas para maior
+  imersão visual no ambiente.
+- Adicionar feedback sonoro para coleta de objetos e ativação do botão
+  (AudioSource com clips distintos por evento).
+- Implementar suporte a controles VR reais (XRSimpleInteractable já configurado),
+  testando no Meta Quest assim que o ambiente Windows/Mac estiver disponível.
+- Expandir a mecânica de progressão com mais salas, níveis de dificuldade
+  e um sistema de tempo para aumentar o desafio.
+- Adicionar multiplayer assíncrono usando Photon PUN2 para permitir que
+  dois jogadores explorem o mesmo ambiente simultaneamente.
 
 ---
 

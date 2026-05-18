@@ -2,7 +2,7 @@
 **Web 3.0 | Residência em TIC 29 — Unidade 1 / Capítulo 3**  
 Aluno: Filipe Mazon | Prof.: Ana Beatriz
 
-Experiência em Realidade Virtual desenvolvida com Unity 2022 LTS e Meta XR SDK.  
+Experiência em Realidade Virtual desenvolvida com Unity 6 LTS (6000.3.14f1) e Meta XR SDK.  
 O jogador navega por um ambiente 3D, coleta objetos interativos e acumula pontuação no HUD.
 
 ---
