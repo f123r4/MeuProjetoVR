@@ -8,7 +8,7 @@ public class CasaBuilder : EditorWindow
     public static void BuildCasa()
     {
         var casa = GameObject.Find("Casa");
-        if (casa == null) { Debug.LogError("❌ GameObject 'Casa' não encontrado!"); return; }
+        if (casa == null) { Debug.LogError("[CasaBuilder] GameObject 'Casa' nao encontrado!"); return; }
 
         var paredes = casa.transform.Find("Paredes")?.gameObject
                       ?? new GameObject("Paredes") { transform = { parent = casa.transform } };
@@ -84,7 +84,7 @@ public class CasaBuilder : EditorWindow
 
         EditorUtility.SetDirty(casa);
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log("✅ Casa construída! Salve com Ctrl+S.");
+        Debug.Log("[CasaBuilder] Casa criada. Salve com Ctrl+S.");
     }
 
     static GameObject CriarParede(GameObject pai, string nome, Vector3 pos, Vector3 scale, Color? cor = null)

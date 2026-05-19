@@ -18,31 +18,32 @@ suportado oficialmente pela Meta para desenvolvimento com o Meta XR SDK.
 Isso gerou uma série de limitações técnicas documentadas abaixo:
 
 1. ERRO DE INICIALIZAÇÃO DO META XR SDK (OVRProjectConfig)
-   Ao abrir o projeto no Unity Editor, o SDK lançava a exceção:
+   Quando abri o projeto pela primeira vez, o Unity ficava travando com um
+   erro no console que dizia algo como:
      System.TypeInitializationException → ArgumentOutOfRangeException
-     em OVRProjectConfig..cctor() → Enumerable.Range(200, count_negativo)
-   Causa raiz: no Linux, a biblioteca nativa OVRPlugin não carrega (sem
-   suporte ao driver Oculus/Meta no sistema), fazendo OVRPlugin.wrapperVersion
-   retornar Version(0,0,0). Isso tornava currentSdkVersion = 60 (mínimo),
-   resultando em Enumerable.Range(200, -139) — contagem negativa inválida.
-   Solução aplicada: patch manual no arquivo PackageCache do SDK, adicionando
-   uma guarda condicional para evitar o Range com count negativo:
+   Demorei um bom tempo pra entender o que estava acontecendo. Pesquisando,
+   descobri que no Linux a biblioteca nativa do Oculus (OVRPlugin) não
+   carrega, porque não tem suporte oficial ao driver no sistema.
+   Com isso, a versão do SDK ficava sendo reportada como 0.0.0, o que fazia
+   um método interno (OVRProjectConfig) tentar gerar um Range com contagem
+   negativa — e aí o Unity travava na inicialização.
+   A solução que encontrei foi editar diretamente o arquivo do SDK dentro
+   de Library/PackageCache, adicionando uma verificação antes do Range:
      .Concat(currentSdkVersion >= version2Start
          ? Enumerable.Range(version2Start, currentSdkVersion - version2Start + 1)
          : Enumerable.Empty<int>())
-   Limitação do patch: o arquivo fica em Library/PackageCache (não versionado),
-   sendo necessário reaplicar caso a pasta Library seja deletada.
+   O problema dessa solução é que a pasta Library não é versionada, então
+   se alguém deletar ela vai precisar aplicar o patch novamente.
 
 2. CONFLITO DO OVR HEADSET EMULATOR COM CHARACTERCONTROLLER
-   O componente OVR Headset Emulator (modo "Editor Only") manipula a posição
-   do XROrigin em paralelo com CharacterController.Move(), impedindo que
-   isGrounded retorne true de forma consistente. Isso causava comportamento
-   imprevisível na física de colisão — o player era bloqueado em aberturas
-   que deveriam ser navegáveis.
-   Solução aplicada: manutenção do CharacterController com tratamento de
-   gravidade (compatível com a solução do projeto de referência), ajuste das
-   dimensões físicas da casa (abertura maior) e configuração correta do
-   CharacterController (Height: 1.8, Radius: 0.3, Center Y: 0.9).
+   Outro problema que apareceu foi o player ficando travado na porta da casa.
+   O CharacterController não estava retornando isGrounded de forma consistente,
+   o que causava um comportamento estranho na colisão. Aparentemente o OVR
+   Headset Emulator também movia o XROrigin em paralelo com o Move() do
+   CharacterController, e isso gerava conflito.
+   Resolvi aumentando a abertura da porta na casa e ajustando as dimensões
+   do CharacterController (Height: 1.8, Radius: 0.3, Center Y: 0.9) até
+   o player conseguir passar sem travar.
 
 3. AUSÊNCIA DO RUNTIME OCULUS/META NO LINUX
    O Linux não possui o runtime nativo do Oculus/Meta Quest (oculus-runtime),
@@ -225,86 +226,67 @@ SEÇÃO 6 — PLANEJAMENTO DO REPOSITÓRIO GITHUB
 
 ---
 
-SEÇÃO 7 — PLANO DE EXECUÇÃO PASSO A PASSO
+SEÇÃO 7 — COMO O PROJETO FOI DESENVOLVIDO
 
-Etapa 1: Instalação e configuração inicial
-  - Instalação do Unity 6000.3.14f1 via Unity Hub
-  - Criação do projeto 3D (URP)
-  - Instalação do Meta XR SDK via Package Manager
-  - Configuração do XR Plugin Management (Oculus PC + Android)
-  - Configuração do Build Settings para Android (API 29, ASTC, IL2CPP, ARM64)
+Primeiro instalei o Unity 6000.3.14f1 pelo Hub e criei o projeto 3D com URP.
+Depois tentei instalar o Meta XR SDK, que é quando apareceu o primeiro erro
+(descrito na Seção 1). Levou um tempo até conseguir abrir o projeto sem crashes.
 
-Etapa 2: Criação da cena base
-  - Adição do Plane_Chao e aplicação de textura de grama
-  - Configuração do Skybox de pôr do sol
-  - Adição de Directional Light
+Com o projeto abrindo, configurei o XR Plugin Management (Oculus no PC e Android)
+e ajustei as Build Settings pro Android com API 29, ASTC, IL2CPP e ARM64.
 
-Etapa 3: Construção da casa
-  - Desenvolvimento do script CasaBuilder.cs (Editor customizado)
-  - Geração procedural das paredes, teto, porta e maçaneta via menu Tools/Build Casa
-  - Aplicação de materiais coloridos nos elementos
+Comecei a cena com um Plane pra servir de chão e fui construindo a casa. A ideia
+de fazer um script pra gerar as paredes (CasaBuilder.cs) veio porque ficava muito
+chato ajustar posição e escala de cubo por cubo no editor. Com o script ficou
+muito mais fácil de refazer quando precisava mudar alguma coisa.
 
-Etapa 4: Implementação do player
-  - Configuração do XROrigin com CharacterController (H: 1.8, R: 0.3, CY: 0.9)
-  - Desenvolvimento do PlayerController.cs com movimentação WASD + gravidade
-  - Detecção de coleta por OverlapSphere e interação com botão por proximidade
+Com a cena base pronta, fiz o PlayerController com movimentação WASD e gravidade
+via CharacterController. Aí apareceu o segundo problema — o player ficava travando
+na porta da casa, que resolvi ajustando as dimensões do CharacterController e
+aumentando a abertura (detalhado na Seção 1).
 
-Etapa 5: Sistema de pontuação e HUD
-  - Desenvolvimento do GameManager.cs (MVC Controller central)
-  - HUD_Canvas em World Space com HUDView.cs seguindo a câmera
-  - TextMeshPro para exibição de pontuação, contador e mensagens
+Os objetos coletáveis e o sistema de pontuação foram feitos em seguida. Separei
+em Controller e View pra cada objeto, seguindo o padrão MVC que o projeto de
+referência usava. O GameManager ficou responsável por controlar o estado geral —
+pontuação, quando o botão aparece, e quando a parede da entrada some.
 
-Etapa 6: Objetos coletáveis e botão interativo
-  - Criação dos 3 objetos coletáveis com ObjetoColetavelController/View
-  - Feedback visual: objeto desaparece ao ser coletado
-  - Desenvolvimento do BotaoPrincipalController/View com estados de cor
-    (branco → amarelo hover → verde ativado)
+O HUD foi uma parte que tive que ajustar bastante. No começo o canvas ficava
+parado na cena e não seguia o player. Resolvi usando LateUpdate pra posicionar
+o canvas sempre na frente da câmera.
 
-Etapa 7: Mecânica de progressão
-  - Botão_Principal inativo no início (ativado pelo GameManager ao coletar os 3 itens)
-  - Parede_Frente_Topo desaparece ao completar a coleta, abrindo a entrada
-  - Mensagem no HUD guia o jogador em cada etapa
-
-Etapa 8: Testes e ajustes
-  - Testes no Unity Editor (Play Mode com teclado)
-  - Ajuste de dimensões da casa para permitir entrada do player
-  - Correção do erro de inicialização do Meta XR SDK no Linux (OVRProjectConfig)
-  - Validação do fluxo completo: coletar → botão aparece → entrar → ativar
+Por fim testei o fluxo completo: aproximar dos objetos pra coletar, ver o botão
+aparecer, entrar na casa e pressionar E pra ativar. Ajustei as posições dos
+objetos e do botão pra ficarem em lugares que fizessem sentido no cenário.
 
 ---
 
 SEÇÃO 8 — REFLEXÃO FINAL
 
 8.1 Aprendizado:
-A separação em MVC (Model-View-Controller) foi o aprendizado mais valioso —
-cada camada com responsabilidade única facilitou manutenção, debug e evolução
-do projeto. Aprendi também que o Meta XR SDK tem comportamentos internos não
-documentados (como o bug do OVRProjectConfig no Linux), e que entender o SDK
-em profundidade — não só usá-lo — faz diferença real no desenvolvimento.
-Scripts de Editor customizados (CasaBuilder) mostraram como ferramentas
-procedurais economizam tempo e garantem consistência na construção de cenas.
+O que mais aprendi foi a separar o código em partes com responsabilidade diferente.
+No começo eu colocava tudo no GameManager e ficava um arquivo gigante difícil de
+mexer. Quando separei em Controller e View pra cada objeto, ficou muito mais fácil
+de entender o que cada parte fazia. Também aprendi que o Meta XR SDK tem bastante
+coisa não documentada — o erro no Linux levou um bom tempo pra resolver porque não
+tinha ninguém com o mesmo problema em forum. Outra coisa foi os scripts de Editor
+(CasaBuilder etc.), que não conhecia e me pouparam muito trabalho de ajuste manual.
 
 8.2 Dificuldades Encontradas:
-A principal dificuldade foi o ambiente de desenvolvimento Linux (Bazzite),
-que não é suportado oficialmente pela Meta. O SDK lançava uma exceção crítica
-na inicialização (OVRProjectConfig — Enumerable.Range com contagem negativa),
-exigindo análise do código-fonte do SDK e aplicação de um patch manual.
-Além disso, o conflito entre o OVR Headset Emulator e o CharacterController
-causou instabilidade na física de colisão, resolvida com ajuste das dimensões
-da casa e configuração correta do CharacterController (Height: 1.8, Radius: 0.3).
-A ausência do runtime Oculus/Meta no Linux impossibilitou testes no headset.
+A maior dificuldade foi o Linux. Não sabia que o SDK não tinha suporte oficial e
+fui descobrindo isso conforme os erros apareciam. O patch no PackageCache funciona
+mas é chato porque some quando a pasta Library é deletada — não é uma solução ideal.
+Testar sem headset também foi limitado, não sei se a navegação VR real vai funcionar
+bem até conseguir testar num Quest de verdade. Tem partes do SDK que ainda não
+entendo direito, especialmente a parte de XR Interaction Toolkit.
 
-8.3 Melhorias Futuras:
-- Substituir primitivos Unity por assets 3D com texturas detalhadas para maior
-  imersão visual no ambiente.
-- Adicionar feedback sonoro para coleta de objetos e ativação do botão
-  (AudioSource com clips distintos por evento).
-- Implementar suporte a controles VR reais (XRSimpleInteractable já configurado),
-  testando no Meta Quest assim que o ambiente Windows/Mac estiver disponível.
-- Expandir a mecânica de progressão com mais salas, níveis de dificuldade
-  e um sistema de tempo para aumentar o desafio.
-- Adicionar multiplayer assíncrono usando Photon PUN2 para permitir que
-  dois jogadores explorem o mesmo ambiente simultaneamente.
+8.3 Possíveis melhorias:
+- Colocar sons quando o player coleta um objeto ou aperta o botão. Tentei um
+  AudioSource mas não deu tempo de ajustar direito.
+- Os objetos coletáveis são cubos e esferas primitivas. Com mais tempo colocaria
+  modelos 3D mais interessantes no lugar.
+- Testar no headset Quest quando tiver acesso a um ambiente Windows ou Mac
+  pra não ter problema com o SDK.
+- Talvez expandir pra ter mais de uma sala ou mais objetos pra coletar.
 
 ---
 

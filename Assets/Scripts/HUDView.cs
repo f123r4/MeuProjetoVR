@@ -13,17 +13,13 @@ public class HUDView : MonoBehaviour
 
     void Start()
     {
-        // Pegar a câmera central do OVRCameraRig
-        var cam = Camera.main;
-        if (cam == null) cam = FindFirstObjectByType<Camera>();
-        if (cam != null) camTransform = cam.transform;
+        camTransform = Camera.main.transform;
     }
 
     void LateUpdate()
     {
         if (camTransform == null) return;
 
-        // Seguir a câmera
         Vector3 forward = camTransform.forward;
         forward.y = 0;
         forward.Normalize();

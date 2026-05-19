@@ -11,24 +11,19 @@ public class SceneComponentWire : EditorWindow
     [MenuItem("Tools/Add Missing Components")]
     public static void AddComponents()
     {
-        // ── GameManager ──────────────────────────────────────────
         var gmGO = GameObject.Find("GameManager");
         if (gmGO != null)
         {
             AddIfMissing<GameManager>(gmGO);
-            Debug.Log("✅ GameManager: componente adicionado");
+            Debug.Log("[ComponentWire] GameManager: componente adicionado");
         }
-
-        // ── EventSystem ──────────────────────────────────────────
         var esGO = GameObject.Find("EventSystem");
         if (esGO != null)
         {
             AddIfMissing<EventSystem>(esGO);
             AddIfMissing<StandaloneInputModule>(esGO);
-            Debug.Log("✅ EventSystem: componentes adicionados");
+            Debug.Log("[ComponentWire] EventSystem: componentes adicionados");
         }
-
-        // ── HUD_Canvas ───────────────────────────────────────────
         var hudGO = GameObject.Find("HUD_Canvas");
         if (hudGO != null)
         {
@@ -48,20 +43,16 @@ public class SceneComponentWire : EditorWindow
             SetupTMP("Texto_Mensagem",  "Colete todos os objetos!");
 
             EditorUtility.SetDirty(hudGO);
-            Debug.Log("✅ HUD_Canvas: componentes e posição configurados");
+            Debug.Log("[ComponentWire] HUD_Canvas: componentes e posição configurados");
         }
-
-        // ── XROrigin / PlayerController ──────────────────────────
         var xrGO = GameObject.Find("XROrigin");
         if (xrGO != null)
         {
             AddIfMissing<PlayerController>(xrGO);
             xrGO.tag = "Player";
             EditorUtility.SetDirty(xrGO);
-            Debug.Log("✅ XROrigin: PlayerController e tag Player configurados");
+            Debug.Log("[ComponentWire] XROrigin: PlayerController e tag Player configurados");
         }
-
-        // ── Objetos Coletáveis ───────────────────────────────────
         string[] nomes = { "Chave", "Cristal", "Moeda" };
         int[]    pts   = { 10, 20, 30 };
 
@@ -83,10 +74,8 @@ public class SceneComponentWire : EditorWindow
             xrInt.selectEntered.AddListener(ctrl.OnInteracaoXR);
 
             EditorUtility.SetDirty(go);
-            Debug.Log($"✅ Objeto_Coletavel_0{i} ({nomes[i-1]}): componentes adicionados");
+            Debug.Log($"[ComponentWire] Objeto_Coletavel_0{i} ({nomes[i-1]}): componentes adicionados");
         }
-
-        // ── Botao_Principal ──────────────────────────────────────
         var botaoGO = GameObject.Find("Botao_Principal");
         if (botaoGO != null)
         {
@@ -100,15 +89,11 @@ public class SceneComponentWire : EditorWindow
             xrInt.selectEntered.AddListener(bCtrl.AoPressionar);
 
             EditorUtility.SetDirty(botaoGO);
-            Debug.Log("✅ Botao_Principal: componentes e eventos conectados");
+            Debug.Log("[ComponentWire] Botao_Principal: componentes e eventos conectados");
         }
-
-        // ── Auto-Wire referências ─────────────────────────────────
         SceneAutoWire.ConectarReferencias();
-
-        // ── Salvar cena ───────────────────────────────────────────
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log("✅ Tudo pronto! Salve com Ctrl+S.");
+        Debug.Log("[ComponentWire] Tudo pronto! Salve com Ctrl+S.");
     }
 
     static T AddIfMissing<T>(GameObject go) where T : Component

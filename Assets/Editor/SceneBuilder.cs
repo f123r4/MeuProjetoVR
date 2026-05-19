@@ -19,8 +19,6 @@ public class SceneBuilder : EditorWindow
         Debug.Log("[SceneBuilder] Hierarquia da cena criada com sucesso!");
     }
 
-    // ── [--- MANAGEMENT ---] ────────────────────────────────────
-
     private static void CriarManagement()
     {
         GameObject raiz = new GameObject("[--- MANAGEMENT ---]");
@@ -76,8 +74,6 @@ public class SceneBuilder : EditorWindow
         return obj;
     }
 
-    // ── [--- PLAYER ---] ────────────────────────────────────────
-
     private static void CriarPlayer()
     {
         GameObject raiz = new GameObject("[--- PLAYER ---]");
@@ -87,8 +83,6 @@ public class SceneBuilder : EditorWindow
         xrOrigin.tag = "Player";
         xrOrigin.AddComponent<PlayerController>();
     }
-
-    // ── [--- ENVIRONMENT ---] ────────────────────────────────────
 
     private static void CriarEnvironment()
     {
@@ -124,8 +118,6 @@ public class SceneBuilder : EditorWindow
         GameObject macaneta = new GameObject("Macaneta");
         macaneta.transform.SetParent(porta.transform);
     }
-
-    // ── [--- INTERACTABLES ---] ──────────────────────────────────
 
     private static void CriarInteractables()
     {

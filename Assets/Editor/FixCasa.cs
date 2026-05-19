@@ -19,8 +19,8 @@ public class FixCasa : EditorWindow
             if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
         }
         if (shader == null) shader = Shader.Find("Standard");
-        if (shader == null) { Debug.LogError("❌ Nenhum shader encontrado!"); return; }
-        Debug.Log("✅ Shader: " + shader.name);
+        if (shader == null) { Debug.LogError("[FixCasa] Nenhum shader encontrado!"); return; }
+        Debug.Log("[FixCasa] Shader: " + shader.name);
 
         System.IO.Directory.CreateDirectory("Assets/Materials");
 
@@ -61,8 +61,6 @@ public class FixCasa : EditorWindow
         {
             if (r && m) { r.sharedMaterial = m; EditorUtility.SetDirty(r.gameObject); }
         }
-
-        // ── Casa ─────────────────────────────────────────────────
         var casa = GameObject.Find("Casa");
         if (casa != null)
         {
@@ -78,10 +76,8 @@ public class FixCasa : EditorWindow
                 else if (n.Contains("Chao"))       AplicarMat(rend, matInterno);
             }
             EditorUtility.SetDirty(casa);
-            Debug.Log("✅ Casa corrigida");
+            Debug.Log("[FixCasa] Casa corrigida");
         }
-
-        // ── Plane_Chao ───────────────────────────────────────────
         var chao = GameObject.Find("Plane_Chao");
         if (chao != null)
         {
@@ -89,10 +85,8 @@ public class FixCasa : EditorWindow
             chao.transform.localScale = new Vector3(3f, 1f, 3f);
             AplicarMat(chao.GetComponent<Renderer>(), matChao);
             EditorUtility.SetDirty(chao);
-            Debug.Log("✅ Plane_Chao corrigido");
+            Debug.Log("[FixCasa] Plane_Chao corrigido");
         }
-
-        // ── Coletáveis ───────────────────────────────────────────
         Material[] matsCol = { matChave, matCristal, matMoeda };
         Vector3[] posCol = {
             new Vector3(-2f, 0.5f, 3f),
@@ -107,10 +101,8 @@ public class FixCasa : EditorWindow
             go.transform.localScale = Vector3.one * 0.3f;
             AplicarMat(go.GetComponent<Renderer>(), matsCol[i-1]);
             EditorUtility.SetDirty(go);
-            Debug.Log($"✅ Objeto_Coletavel_0{i} corrigido");
+            Debug.Log($"[FixCasa] Objeto_Coletavel_0{i} corrigido");
         }
-
-        // ── Botao_Principal ──────────────────────────────────────
         var botao = GameObject.Find("Botao_Principal");
         if (botao != null)
         {
@@ -118,10 +110,8 @@ public class FixCasa : EditorWindow
             botao.transform.localScale = new Vector3(0.4f, 0.15f, 0.4f);
             AplicarMat(botao.GetComponent<Renderer>(), matBotao);
             EditorUtility.SetDirty(botao);
-            Debug.Log("✅ Botao_Principal corrigido");
+            Debug.Log("[FixCasa] Botao_Principal corrigido");
         }
-
-        // ── HUD_Canvas ───────────────────────────────────────────
         var hud = GameObject.Find("HUD_Canvas");
         if (hud != null)
         {
@@ -129,15 +119,13 @@ public class FixCasa : EditorWindow
             hud.transform.rotation   = Quaternion.identity;
             hud.transform.localScale = new Vector3(0.003f, 0.003f, 0.003f);
             EditorUtility.SetDirty(hud);
-            Debug.Log("✅ HUD_Canvas corrigido");
+            Debug.Log("[FixCasa] HUD_Canvas corrigido");
         }
-
-        // ── XROrigin ─────────────────────────────────────────────
         var xr = GameObject.Find("XROrigin");
         if (xr != null) { xr.transform.position = Vector3.zero; EditorUtility.SetDirty(xr); }
 
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log($"✅ Fix completo! Shader usado: {shader.name} — Salve com Ctrl+S.");
+        Debug.Log($"[FixCasa] Fix completo! Shader usado: {shader.name} — Salve com Ctrl+S.");
     }
 }
 #endif

@@ -1,11 +1,10 @@
 using UnityEngine;
 
-// Gerencia o estado global do jogo: pontuação e progresso de coleta
 public class GameManager : MonoBehaviour
 {
-    [SerializeField] public HUDView hudView;
-    [SerializeField] public GameObject botaoPrincipal;
-    [SerializeField] public GameObject paredeEntrada;
+    public HUDView hudView;
+    public GameObject botaoPrincipal;
+    public GameObject paredeEntrada;
 
     private int pontuacao = 0;
     private int totalObjetos = 3;
@@ -25,7 +24,6 @@ public class GameManager : MonoBehaviour
 
     public bool TodosObjetosColetados() => objetosColetados >= totalObjetos;
 
-    // Chamado por ObjetoColetavelController quando um objeto é coletado
     public void RegistrarColeta(int pontos)
     {
         pontuacao += pontos;

@@ -15,7 +15,7 @@ public class SceneAutoWire : EditorWindow
         {
             gm.hudView = hud;
             EditorUtility.SetDirty(gm);
-            Debug.Log("✅ GameManager → HUDView");
+            Debug.Log("[AutoWire] GameManager → HUDView");
         }
 
         if (hud)
@@ -27,7 +27,7 @@ public class SceneAutoWire : EditorWindow
             if (to) hud.textoObjetos   = to.GetComponent<TextMeshProUGUI>();
             if (tm) hud.textoMensagem  = tm.GetComponent<TextMeshProUGUI>();
             EditorUtility.SetDirty(hud);
-            Debug.Log("✅ HUDView → textos");
+            Debug.Log("[AutoWire] HUDView → textos");
         }
 
         var pc  = Object.FindFirstObjectByType<PlayerController>();
@@ -36,7 +36,7 @@ public class SceneAutoWire : EditorWindow
         {
             pc.referenciaCamera = cam;
             EditorUtility.SetDirty(pc);
-            Debug.Log("✅ PlayerController → Main Camera");
+            Debug.Log("[AutoWire] PlayerController → Main Camera");
         }
 
         string[] nomes = { "Chave", "Cristal", "Moeda" };
@@ -50,11 +50,11 @@ public class SceneAutoWire : EditorWindow
             ctrl.nomeObjeto = nomes[i];
             ctrl.pontos     = pts[i];
             EditorUtility.SetDirty(go);
-            Debug.Log($"✅ Objeto_Coletavel_0{i+1} → {nomes[i]}");
+            Debug.Log($"[AutoWire] Objeto_Coletavel_0{i+1} → {nomes[i]}");
         }
 
         UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log("✅ Auto-Wire concluído! Salve com Ctrl+S.");
+        Debug.Log("[AutoWire] Auto-Wire concluído! Salve com Ctrl+S.");
     }
 }
 #endif
